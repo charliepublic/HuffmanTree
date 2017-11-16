@@ -3,9 +3,9 @@
 using namespace std;
 
 int main() {
-    string a = "Hello, World!";
+    string a("Hello, World!");
     cin >> a;
-    if(!cin){
+    if(1){
         cout<<a<<endl;
         cout<<a<<endl;
     }//
