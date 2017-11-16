@@ -8,7 +8,7 @@ int main() {
     if(!cin){
         cout<<a<<endl;
         cout<<a<<endl;
-    }
+    }//
     cout<< "what"<<endl;
     return 0;
 }
