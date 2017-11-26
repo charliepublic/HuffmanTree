@@ -1,11 +1,12 @@
 #include <iostream>
 #include <fstream>
-#include <cassert>
 #include <vector>
+#include <cassert>
+#include <cstring>
 
 using namespace std;
 
-class node{
+struct node{
 public:
     unsigned int weight;
     unsigned char elem;
@@ -98,22 +99,18 @@ void HuffTree (vector<treenode> & vecValidNumberArray){
 }
 
 
-void readTxt(string file)
+void pressTxt(string file)
 {
     int roadlen = file.length();
     int i = roadlen;
     while(file[i-1] != '\\'){
         i--;
     }
-    string outfile = file.substr(0,i-1);
-    string name = "2.txt";
-   // cin>> "print your file name :">>name;
-    outfile = outfile + name ;
+    int j = i;
     ifstream infile;
     infile.open(file.data());   //将文件流对象与文件连接起来
     assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行
-    ofstream ofile(outfile.data());   //将文件流对象与文件连接起来;
-    assert(ofile.is_open());   //若失败,则输出错误消息,并终止程序运行
+
     char c;
     infile >> noskipws;
     int len = 0;
@@ -121,7 +118,9 @@ void readTxt(string file)
     vector<node> nodeArray;
     while (!infile.eof())
     {
-        infile>>c;
+        c = infile.get();
+        if(c =='\377')
+            break;
         for(i = 0; i < len ;i++){
             if(array[i].elem == c){
                 array[i].weight++;
@@ -138,31 +137,111 @@ void readTxt(string file)
             }
     }
     infile.close();
-
+    string outfile = file.substr(0,j-1);
+    string name = "2.txt";
+    // cin>> "print your file name :">>name;
+    outfile = outfile + "\\"+name ;
+    ofstream ofile(outfile.data(), ios::binary);   //将文件流对象与文件连接起来;
+    assert(ofile.is_open());   //若失败,则输出错误消息,并终止程序运行
+    while(nodeArray.size() != 0){
+        node nodetemp = nodeArray[nodeArray.size()-1];
+        nodeArray.pop_back();
+        ofile.write((char*)(&nodetemp), sizeof(nodetemp));
+    }
+    c = '\0';
+    ofile.write((&c), sizeof(c));
+    ofile.close();
     string strArray[256];
     char str[256];
     HuffTree(array);             //建树
-    build(array[0],str,0,strArray);
+    build(array[0],str,0,strArray); //存节点的huffman编码
 
+    ofstream oufile(outfile.data(), ios::binary|ios::app);   //将文件流对象与文件连接起来;
+    assert(oufile.is_open());   //若失败,则输出错误消息,并终止程序运行
     infile.open(file.data());
     assert(infile.is_open());
-    infile.clear();
-    infile.seekg(0);
+    infile >> noskipws;
+    while (!infile.eof()){
+        c = infile.get();
+        if(c =='\377')
+            break;
+        string temp = strArray[c];
+        oufile.write(temp.c_str(), sizeof(char) * (temp.size()));
+    }
+    oufile.close();
     infile.close();             //关闭文件输入流
-    ofile.close();
 
 }
-
 
 void compress() {
     cout << "Please input source file name(size less than 4GB):";
     string file = "D:\\a.txt";
-  //  cin >> file;
-    readTxt(file);
+    //  cin >> file;
+    pressTxt(file);
+
+}
+
+void depressTxt(string file)
+{
+    int roadlen = file.length();
+    int i = roadlen;
+    while(file[i-1] != '\\'){
+        i--;
+    }
+    int j = i;
+    ifstream infile;
+    infile.open(file.data(),ios::binary);   //将文件流对象与文件连接起来
+    assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行
+    vector<node> nodeArray;
+    while(!infile.eof()){
+
+        node nodeTemp ;
+        infile.read((char *)(&nodeTemp), sizeof(node));
+        nodeArray.push_back(nodeTemp);
+        if(infile.peek() == '\0')
+            break;
+    }
+    infile.get();
+
+    vector<treenode> tree;
+    while(nodeArray.size() !=0){
+        treenode *temp = new treenode();
+        temp->weight = nodeArray[nodeArray.size()-1].weight;
+        temp->elem = nodeArray[nodeArray.size()-1].elem;
+        tree.push_back(*temp);
+        nodeArray.pop_back();
+    }
+
+    HuffTree(tree);             //建树
+    treenode *ptree = &tree[0];
+    char c;
+    string outfile = file.substr(0,j-1);
+    string name = "3.txt";
+    // cin>> "print your file name :">>name;
+    outfile = outfile + "\\"+name ;
+    ofstream ofile(outfile.data());   //将文件流对象与文件连接起来;
+    assert(ofile.is_open());   //若失败,则输出错误消息,并终止程序运行
+    while(!infile.eof()){
+        c = infile.get();
+        if(c == '0'){
+            ptree =ptree->left;
+        }else if(c == '1'){
+            ptree = ptree->right;
+        }
+        if(ptree->isleave()){
+            ofile << ptree->elem;
+            ptree = &tree[0];
+        }
+    }
+    infile.close();
+    ofile.close();
 }
 
 void decompress(){
-
+    cout << "Please input source file name(size less than 4GB):";
+    string file = "D:\\2.txt";
+    //  cin >> file;
+    depressTxt(file);
 }
 
 void toDo(){
@@ -179,9 +258,9 @@ void toDo(){
         decompress();
     }else if(get == 3){
         exit(0);
-    }else{
-        toDo();
     }
+    toDo();
+
 
 }
 
