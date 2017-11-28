@@ -137,6 +137,10 @@ void pressTxt(string file)
             }
     }
     infile.close();
+    string strArray[256];
+    char str[256];
+    HuffTree(array);             //建树
+    build(array[0],str,0,strArray); //存节点的huffman编码
     string outfile = file.substr(0,j-1);
     string name = "2.txt";
     // cin>> "print your file name :">>name;
@@ -151,25 +155,55 @@ void pressTxt(string file)
     c = '\0';
     ofile.write((&c), sizeof(c));
     ofile.close();
-    string strArray[256];
-    char str[256];
-    HuffTree(array);             //建树
-    build(array[0],str,0,strArray); //存节点的huffman编码
+
 
     ofstream oufile(outfile.data(), ios::binary|ios::app);   //将文件流对象与文件连接起来;
     assert(oufile.is_open());   //若失败,则输出错误消息,并终止程序运行
     infile.open(file.data());
     assert(infile.is_open());
     infile >> noskipws;
+    string stringWrite;
     while (!infile.eof()){
         c = infile.get();
-        if(c =='\377')
-            break;
         string temp = strArray[c];
-        oufile.write(temp.c_str(), sizeof(char) * (temp.size()));
+        stringWrite += temp;
     }
-    oufile.close();
-    infile.close();             //关闭文件输入流
+    //cout <<stringWrite<<endl;
+    infile.close();
+
+    int size=(int)stringWrite.size();
+    oufile.write((char *)(&size), sizeof(size));
+    int less = size % 8;
+    for(j =0 ; j<=size;j+=8){
+        unsigned  char charWrite = '0';
+        if(j+8 > size){
+            i =0;
+            while(j+i < size){
+                char charTemp =stringWrite[j+i];
+                if(charTemp == '0'){
+                    charWrite<<=1;
+                }else if(charTemp == '1'){
+                    charWrite<<=1;
+                    charWrite|=1;
+                }
+                i++;
+            }
+            charWrite<<=(8-less);
+        }else{
+            for( i =0;i<8;i++){
+                char charTemp =stringWrite[j+i];
+                if(charTemp == '0'){
+                    charWrite<<=1;
+                }else if(charTemp == '1'){
+                    charWrite<<=1;
+                    charWrite|=1;
+                }
+            }
+        }
+
+        oufile.write((char*)(&charWrite), sizeof(charWrite));
+    }
+     oufile.close();
 
 }
 
@@ -201,8 +235,10 @@ void depressTxt(string file)
         if(infile.peek() == '\0')
             break;
     }
-    infile.get();
-
+    char temp1;
+    infile.get(temp1);
+    int strSize;
+    infile.read((char *)(&strSize), sizeof(strSize));
     vector<treenode> tree;
     while(nodeArray.size() !=0){
         treenode *temp = new treenode();
@@ -214,24 +250,35 @@ void depressTxt(string file)
 
     HuffTree(tree);             //建树
     treenode *ptree = &tree[0];
-    char c;
+    unsigned char c;
     string outfile = file.substr(0,j-1);
     string name = "3.txt";
     // cin>> "print your file name :">>name;
     outfile = outfile + "\\"+name ;
     ofstream ofile(outfile.data());   //将文件流对象与文件连接起来;
     assert(ofile.is_open());   //若失败,则输出错误消息,并终止程序运行
-    while(!infile.eof()){
+    j =0;
+    while(j< strSize){
         c = infile.get();
-        if(c == '0'){
-            ptree =ptree->left;
-        }else if(c == '1'){
-            ptree = ptree->right;
+        for( i =0;i<8;i++){
+            unsigned char temp ;
+            temp = c&128;
+            c<<=1;
+            if(temp == 128){
+                ptree =ptree->right;
+            }else if(temp == 0){
+                ptree = ptree->left;
+            }
+            if(ptree->isleave()){
+                ofile << ptree->elem;
+                ptree = &tree[0];
+            }
+            j++;
+            if(j>= strSize)
+                break;
         }
-        if(ptree->isleave()){
-            ofile << ptree->elem;
-            ptree = &tree[0];
-        }
+
+
     }
     infile.close();
     ofile.close();

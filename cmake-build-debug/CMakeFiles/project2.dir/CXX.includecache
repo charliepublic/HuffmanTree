@@ -7,6 +7,14 @@
 #IncludeRegexTransform: 
 
 D:/Code_Libaray/project2/main.cpp
-stdio.h
+iostream
+-
+fstream
+-
+vector
+-
+cassert
+-
+cstring
 -
 
