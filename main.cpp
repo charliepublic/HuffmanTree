@@ -111,7 +111,7 @@ void pressTxt(string file)
     infile.open(file.data());   //将文件流对象与文件连接起来
     assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行
 
-    char c;
+     unsigned char c;
     infile >> noskipws;
     int len = 0;
     vector<treenode>array;
@@ -142,9 +142,14 @@ void pressTxt(string file)
     HuffTree(array);             //建树
     build(array[0],str,0,strArray); //存节点的huffman编码
     string outfile = file.substr(0,j-1);
-    string name = "2.txt";
-    // cin>> "print your file name :">>name;
+    string name ;
+    cout<<"print your file name :";
+    cin >> name;
     outfile = outfile + "\\"+name ;
+    if(outfile == file){
+        cout<<"Wrong way"<<endl;
+        return;
+    }
     ofstream ofile(outfile.data(), ios::binary);   //将文件流对象与文件连接起来;
     assert(ofile.is_open());   //若失败,则输出错误消息,并终止程序运行
     while(nodeArray.size() != 0){
@@ -153,7 +158,7 @@ void pressTxt(string file)
         ofile.write((char*)(&nodetemp), sizeof(nodetemp));
     }
     c = '\0';
-    ofile.write((&c), sizeof(c));
+    ofile.write((char *)(&c), sizeof(c));
     ofile.close();
 
 
@@ -179,7 +184,7 @@ void pressTxt(string file)
         if(j+8 > size){
             i =0;
             while(j+i < size){
-                char charTemp =stringWrite[j+i];
+                unsigned char charTemp =stringWrite[j+i];
                 if(charTemp == '0'){
                     charWrite<<=1;
                 }else if(charTemp == '1'){
@@ -209,8 +214,8 @@ void pressTxt(string file)
 
 void compress() {
     cout << "Please input source file name(size less than 4GB):";
-    string file = "D:\\a.txt";
-    //  cin >> file;
+    string file ;
+     cin >> file;
     pressTxt(file);
 
 }
@@ -235,8 +240,7 @@ void depressTxt(string file)
         if(infile.peek() == '\0')
             break;
     }
-    char temp1;
-    infile.get(temp1);
+    infile.get();
     int strSize;
     infile.read((char *)(&strSize), sizeof(strSize));
     vector<treenode> tree;
@@ -252,9 +256,14 @@ void depressTxt(string file)
     treenode *ptree = &tree[0];
     unsigned char c;
     string outfile = file.substr(0,j-1);
-    string name = "3.txt";
-    // cin>> "print your file name :">>name;
+    string name ;
+    cout<<"print your file name :";
+     cin>> name;
     outfile = outfile + "\\"+name ;
+    if(outfile == file){
+        cout<<"Wrong way"<<endl;
+        return;
+    }
     ofstream ofile(outfile.data());   //将文件流对象与文件连接起来;
     assert(ofile.is_open());   //若失败,则输出错误消息,并终止程序运行
     j =0;
@@ -286,8 +295,8 @@ void depressTxt(string file)
 
 void decompress(){
     cout << "Please input source file name(size less than 4GB):";
-    string file = "D:\\2.txt";
-    //  cin >> file;
+    string file ;
+      cin >> file;
     depressTxt(file);
 }
 
@@ -297,13 +306,13 @@ void toDo(){
     cout << "2.Huffman decompress."<<endl;
     cout << "3.Exit."<<endl;
     cout << "Please select :";
-    int get;
+    char get;
     cin >> get ;
-    if(get == 1){
+    if(get == '1'){
         compress();
-    }else if(get == 2){
+    }else if(get == '2'){
         decompress();
-    }else if(get == 3){
+    }else if(get == '3'){
         exit(0);
     }
     toDo();
